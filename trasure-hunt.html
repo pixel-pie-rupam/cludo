@@ -857,8 +857,14 @@
             modalSubmitButton.onclick = () => handleFlagSubmission(clue);
         }
         
-        closeModalButton.addEventListener('click', () => clueModal.classList.add('hidden'));
-
+        // Close clue modal when clicking the close button
+        closeModalButton.addEventListener('click', () => {
+            clueModal.classList.add('hidden');
+            modalFeedback.textContent = '';
+            modalFlagInput.value = '';
+            hintText.classList.add('hidden');
+        });
+        
         async function handleHintRequest(clue) {
             if (appState.currentTeam.score < 30) { return alert("You don't have enough points for a hint!"); }
             if (!confirm("Are you sure you want to spend 30 points for a hint?")) return;
@@ -884,41 +890,71 @@
 
         async function handleFlagSubmission(clue) {
             const submittedFlag = modalFlagInput.value.trim();
-            if (submittedFlag !== clue.flag) {
-                modalFeedback.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Incorrect Flag.';
-                modalFeedback.className = 'text-center mt-4 h-4 font-medium text-red-400 text-sm';
-                return;
-            }
             modalSubmitButton.disabled = true;
             modalSubmitButton.innerHTML = `<div class="spinner mr-2"></div>Submitting...`;
-            const clueRef = db.collection('clues').doc(clue.id);
+
             const teamRef = db.collection('teams').doc(appState.currentTeam.id);
+            const clueRef = db.collection('clues').doc(clue.id);
+            let pointsToAward = 0;
+            let isRabbitHole = false;
+
+            // NEW LOGIC: Check for correct flag vs. rabbit hole flag
+            if (submittedFlag === clue.flag) {
+                // Correct flag logic
+                const solverCount = Object.keys(clue.solvers || {}).length;
+                if (solverCount === 0) pointsToAward = 250;
+                else if (solverCount <= 3) pointsToAward = 200;
+                else pointsToAward = 150;
+            } else if (clue.rabbitHoleFlag && submittedFlag === clue.rabbitHoleFlag) {
+                // Rabbit hole flag logic
+                pointsToAward = -100;
+                isRabbitHole = true;
+            } else {
+                // Incorrect flag
+                modalFeedback.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Incorrect Flag.';
+                modalFeedback.className = 'text-center mt-4 h-4 font-medium text-red-400 text-sm';
+                modalSubmitButton.disabled = false;
+                modalSubmitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Flag';
+                return;
+            }
+
             try {
-                const pointsAwarded = await db.runTransaction(async t => {
+                await db.runTransaction(async t => {
                     const clueDoc = await t.get(clueRef);
                     if (!clueDoc.exists) throw new Error("This clue seems to have disappeared!");
                     const clueData = clueDoc.data();
-                    if ((clueData.solvers || {})[appState.currentTeam.id]) throw new Error("You have already solved this clue!");
-                    const solverCount = Object.keys(clueData.solvers || {}).length;
-                    let points = 150;
-                    if (solverCount === 0) points = 250;
-                    else if (solverCount <= 3) points = 200;
-                    const newSolvers = { ...(clueData.solvers || {}) };
-                    newSolvers[appState.currentTeam.id] = { teamName: appState.currentTeam.teamName, solvedAt: new Date() };
-                    t.update(clueRef, { solvers: newSolvers });
+
+                    // For correct flags, check if already solved
+                    if (!isRabbitHole && (clueData.solvers || {})[appState.currentTeam.id]) {
+                        throw new Error("You have already solved this clue!");
+                    }
+                    
+                    // Update team score
                     t.update(teamRef, {
-                        score: firebase.firestore.FieldValue.increment(points),
-                        solvedClues: firebase.firestore.FieldValue.arrayUnion(clue.id)
+                        score: firebase.firestore.FieldValue.increment(pointsToAward),
+                        lastSubmissionTimestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    return points;
+
+                    // Only mark as solved if it's NOT a rabbit hole
+                    if (!isRabbitHole) {
+                        const newSolvers = { ...(clueData.solvers || {}) };
+                        newSolvers[appState.currentTeam.id] = { teamName: appState.currentTeam.teamName, solvedAt: new Date() };
+                        t.update(clueRef, { solvers: newSolvers });
+                    }
                 });
-                await db.collection('event_log').add({
-                    message: `Team "${appState.currentTeam.teamName}" solved '${clue.clueTitle}' for ${pointsAwarded} points!`,
-                    timestamp: new Date()
-                });
-                modalFeedback.innerHTML = `<i class="fas fa-check-circle mr-2"></i>Success! You earned ${pointsAwarded} points!`;
-                modalFeedback.className = 'text-center mt-4 h-4 font-medium text-green-400 text-sm';
+
+                const message = isRabbitHole 
+                    ? `Team "${appState.currentTeam.teamName}" fell into a rabbit hole!` 
+                    : `Team "${appState.currentTeam.teamName}" solved '${clue.clueTitle}' for ${pointsToAward} points!`;
+                await db.collection('event_log').add({ message, timestamp: new Date() });
+
+                modalFeedback.innerHTML = isRabbitHole 
+                    ? `<i class="fas fa-exclamation-triangle mr-2"></i>It's a trap! You lose 100 points.`
+                    : `<i class="fas fa-check-circle mr-2"></i>Success! You earned ${pointsToAward} points!`;
+                modalFeedback.className = `text-center mt-4 h-4 font-medium ${isRabbitHole ? 'text-orange-400' : 'text-green-400'} text-sm`;
+                
                 setTimeout(() => clueModal.classList.add('hidden'), 2000);
+
             } catch (error) {
                 modalFeedback.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${error.message}`;
                 modalFeedback.className = 'text-center mt-4 h-4 font-medium text-red-400 text-sm';
