@@ -7,7 +7,6 @@
     <link rel="icon" type="image/svg+xml" href="https://i.ibb.co/BV54VqJ0/cludologo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- QR Code Scanner Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -320,7 +319,6 @@
         <main class="flex-1 p-4 sm:p-6">
             <div class="max-w-7xl mx-auto">
                 <div class="space-y-6 sm:space-y-8">
-                    <!-- Available Clues Section -->
                     <div class="glass-effect rounded-2xl p-4 sm:p-6 shadow-2xl">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
                             <h3 class="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
@@ -341,7 +339,6 @@
                         </div>
                     </div>
                     
-                    <!-- Live Event Feed Section -->
                     <div class="glass-effect rounded-2xl p-4 sm:p-6 shadow-2xl">
                         <h3 class="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-4 sm:mb-6 pb-3 border-b border-slate-700">
                             <i class="fas fa-broadcast-tower mr-2 sm:mr-3"></i>Live Event Feed
@@ -391,7 +388,6 @@
         </div>
     </div>
 
-    <!-- QR Scanner Modal -->
     <div id="qr-scanner-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4 hidden transition-all z-50">
         <div class="glass-effect w-full max-w-2xl rounded-2xl shadow-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
             <button id="close-qr-modal-button" class="absolute top-4 right-4 sm:top-6 sm:right-6 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-white transition-all">
@@ -406,7 +402,6 @@
             </div>
             
             <div class="space-y-6">
-                <!-- Camera View -->
                 <div class="qr-scanner-container">
                     <video id="qr-video" class="qr-scanner-video" playsinline muted></video>
                     <div class="qr-scanner-overlay">
@@ -416,7 +411,6 @@
                     </div>
                 </div>
                 
-                <!-- Scanner Status -->
                 <div id="scanner-status" class="text-center">
                     <div class="glass-effect rounded-xl p-4">
                         <i class="fas fa-camera text-2xl text-cyan-400 mb-2"></i>
@@ -424,7 +418,6 @@
                     </div>
                 </div>
                 
-                <!-- QR Result Display -->
                 <div id="qr-result-section" class="hidden">
                     <h3 class="text-lg font-bold text-green-400 mb-3">
                         <i class="fas fa-check-circle mr-2"></i>QR Code Detected!
@@ -440,7 +433,6 @@
                     </div>
                 </div>
                 
-                <!-- Camera Controls -->
                 <div class="flex justify-center space-x-4">
                     <button id="start-scanner-button" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium py-2 px-4 rounded-xl transition-all shadow-lg text-sm">
                         <i class="fas fa-play mr-2"></i>Start Scanner
@@ -453,7 +445,6 @@
         </div>
     </div>
 
-    <!-- Enhanced Broadcast Toast -->
     <div id="broadcast-toast" class="hidden broadcast-toast rounded-2xl text-white p-4 sm:p-6">
         <div class="flex items-start justify-between">
             <div class="flex items-center flex-1">
@@ -470,7 +461,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Replace with your config) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -796,9 +786,24 @@
                         if (state.broadcastMessage && state.broadcastMessage.trim()) {
                             showBroadcast(state.broadcastMessage);
                         }
-                        appState.currentTier = state.currentClueTier || 1;
-                        clueTierEl.textContent = appState.currentTier;
-                        resolve();
+                        
+                        const newTier = state.currentClueTier || 1;
+                        
+                        // Check if the tier has changed since the last update.
+                        // appState.currentTier !== null prevents this from running on the initial page load.
+                        if (appState.currentTier !== null && appState.currentTier !== newTier) {
+                            console.log(`Tier changed from ${appState.currentTier} to ${newTier}. Refreshing clues.`);
+                            appState.currentTier = newTier;
+                            clueTierEl.textContent = appState.currentTier;
+                            // Re-fetch the clues for the new tier
+                            listenToClues(); 
+                        } else {
+                             // This runs on the initial load or if the tier hasn't changed.
+                            appState.currentTier = newTier;
+                            clueTierEl.textContent = appState.currentTier;
+                        }
+
+                        resolve(); // Resolves the promise on first load to continue initialization.
                     }
                 });
             });
