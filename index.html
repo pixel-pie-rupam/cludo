@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SECCOM 2025 | Digital Treasure Hunt</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/svg+xml" href="https://i.ibb.co/BV54VqJ0/cludologo.png">
@@ -13,12 +13,16 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: #0a0e1a;
             overflow-x: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
 
         /* Initial Loading Screen */
@@ -35,6 +39,7 @@
             justify-content: center;
             z-index: 10000;
             transition: opacity 0.8s ease-out;
+            padding: 20px;
         }
 
         .initial-loading.fade-out {
@@ -42,12 +47,12 @@
             pointer-events: none;
         }
 
-        /* Campus Building Animation */
+        /* Campus Building Animation - Mobile Optimized */
         .campus-scene {
             position: relative;
-            width: 300px;
-            height: 200px;
-            margin-bottom: 40px;
+            width: min(300px, 80vw);
+            height: min(200px, 25vh);
+            margin-bottom: 30px;
         }
 
         .building {
@@ -60,32 +65,32 @@
         }
 
         .building-1 {
-            left: 20px;
-            width: 60px;
-            height: 100px;
+            left: 5%;
+            width: 20%;
+            height: 50%;
             animation-delay: 0.2s;
         }
 
         .building-2 {
-            left: 90px;
-            width: 80px;
-            height: 140px;
+            left: 30%;
+            width: 27%;
+            height: 70%;
             animation-delay: 0.4s;
         }
 
         .building-3 {
-            left: 180px;
-            width: 70px;
-            height: 110px;
+            left: 60%;
+            width: 23%;
+            height: 55%;
             animation-delay: 0.6s;
         }
 
         .window {
             position: absolute;
-            width: 8px;
-            height: 10px;
+            width: 20%;
+            height: 8%;
             background: #fbbf24;
-            margin: 8px 6px;
+            margin: 6% 8%;
             box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
             animation: windowBlink 2s infinite;
         }
@@ -129,19 +134,19 @@
             background-image: 
                 linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
+            background-size: 30px 30px;
             animation: gridMove 20s linear infinite;
             opacity: 0.3;
         }
 
         @keyframes gridMove {
             0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(30px); }
         }
 
         /* Loading Progress */
         .progress-container {
-            width: 350px;
+            width: min(350px, 85vw);
             height: 8px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
@@ -165,7 +170,7 @@
             100% { background-position: -200% 0; }
         }
 
-        /* Event Details Panel */
+        /* Event Details Panel - Mobile Optimized */
         .event-panel {
             display: none;
             position: fixed;
@@ -177,9 +182,11 @@
             z-index: 9999;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 15px;
             opacity: 0;
             transition: opacity 0.5s ease;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .event-panel.show {
@@ -190,14 +197,15 @@
         .event-content {
             background: linear-gradient(135deg, #1a1f35 0%, #2d3748 100%);
             border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 24px;
-            padding: 50px 40px;
+            border-radius: 20px;
+            padding: 30px 20px;
             max-width: 700px;
             width: 100%;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 100px rgba(0, 255, 255, 0.2);
             animation: slideIn 0.6s ease-out;
             position: relative;
             overflow: hidden;
+            margin: auto;
         }
 
         .event-content::before {
@@ -213,7 +221,7 @@
 
         @keyframes slideIn {
             from {
-                transform: translateY(100px) scale(0.9);
+                transform: translateY(50px) scale(0.95);
                 opacity: 0;
             }
             to {
@@ -231,16 +239,16 @@
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(0, 255, 255, 0.2);
             border-radius: 12px;
-            padding: 20px;
-            margin: 15px 0;
+            padding: 16px;
+            margin: 12px 0;
             transition: all 0.3s ease;
             position: relative;
             z-index: 1;
         }
 
-        .detail-card:hover {
+        .detail-card:active {
             border-color: rgba(0, 255, 255, 0.5);
-            transform: translateX(10px);
+            transform: scale(0.98);
             box-shadow: 0 5px 20px rgba(0, 255, 255, 0.2);
         }
 
@@ -248,9 +256,9 @@
             background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
             color: #0a0e1a;
             font-weight: 800;
-            padding: 18px 50px;
+            padding: 16px 40px;
             border-radius: 50px;
-            font-size: 18px;
+            font-size: 16px;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -258,6 +266,9 @@
             position: relative;
             overflow: hidden;
             z-index: 1;
+            width: 100%;
+            max-width: 350px;
+            touch-action: manipulation;
         }
 
         .btn-adventure::before {
@@ -273,14 +284,14 @@
             transition: width 0.6s, height 0.6s;
         }
 
-        .btn-adventure:hover::before {
-            width: 300px;
-            height: 300px;
+        .btn-adventure:active {
+            transform: scale(0.97);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.6);
         }
 
-        .btn-adventure:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 255, 255, 0.6);
+        .btn-adventure:active::before {
+            width: 300px;
+            height: 300px;
         }
 
         /* Navigation Loading Screen */
@@ -296,44 +307,16 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            padding: 20px;
         }
 
         .nav-loading.show {
             display: flex;
         }
 
-        .circuit-loader {
-            position: relative;
-            width: 200px;
-            height: 200px;
-        }
-
-        .circuit-line {
-            position: absolute;
-            background: linear-gradient(90deg, transparent, #00ffff, transparent);
-            box-shadow: 0 0 10px #00ffff;
-            animation: circuitFlow 2s linear infinite;
-        }
-
-        .circuit-line.h {
-            height: 2px;
-            width: 100%;
-        }
-
-        .circuit-line.v {
-            width: 2px;
-            height: 100%;
-        }
-
-        @keyframes circuitFlow {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
         .loading-spinner {
-            width: 80px;
-            height: 80px;
+            width: min(80px, 20vw);
+            height: min(80px, 20vw);
             border: 4px solid rgba(0, 255, 255, 0.1);
             border-top: 4px solid #00ffff;
             border-radius: 50%;
@@ -367,6 +350,72 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 640px) {
+            .event-content {
+                padding: 25px 18px;
+                border-radius: 16px;
+            }
+
+            .detail-card {
+                padding: 14px;
+                margin: 10px 0;
+            }
+
+            .btn-adventure {
+                padding: 14px 35px;
+                font-size: 15px;
+            }
+
+            .campus-scene {
+                margin-bottom: 25px;
+            }
+        }
+
+        /* Small mobile devices */
+        @media (max-width: 375px) {
+            .event-content {
+                padding: 20px 15px;
+            }
+
+            .detail-card {
+                padding: 12px;
+            }
+
+            .btn-adventure {
+                padding: 12px 30px;
+                font-size: 14px;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .event-panel {
+                align-items: flex-start;
+                padding-top: 10px;
+            }
+
+            .event-content {
+                margin: 10px auto;
+            }
+
+            .campus-scene {
+                height: 120px;
+                margin-bottom: 15px;
+            }
+        }
+
+        /* Prevent zoom on input focus (iOS) */
+        @media (max-width: 768px) {
+            select, textarea, input[type="text"], input[type="password"],
+            input[type="datetime"], input[type="datetime-local"],
+            input[type="date"], input[type="month"], input[type="time"],
+            input[type="week"], input[type="number"], input[type="email"],
+            input[type="url"] {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -378,64 +427,64 @@
         <div class="campus-scene">
             <div class="scan-line"></div>
             <div class="building building-1">
-                <div class="window" style="top: 20px; left: 10px;"></div>
-                <div class="window" style="top: 20px; left: 30px;"></div>
-                <div class="window" style="top: 40px; left: 10px;"></div>
-                <div class="window" style="top: 40px; left: 30px;"></div>
-                <div class="window" style="top: 60px; left: 10px;"></div>
-                <div class="window" style="top: 60px; left: 30px;"></div>
+                <div class="window" style="top: 15%; left: 15%;"></div>
+                <div class="window" style="top: 15%; left: 55%;"></div>
+                <div class="window" style="top: 35%; left: 15%;"></div>
+                <div class="window" style="top: 35%; left: 55%;"></div>
+                <div class="window" style="top: 55%; left: 15%;"></div>
+                <div class="window" style="top: 55%; left: 55%;"></div>
             </div>
             <div class="building building-2">
-                <div class="window" style="top: 15px; left: 10px;"></div>
-                <div class="window" style="top: 15px; left: 30px;"></div>
-                <div class="window" style="top: 15px; left: 50px;"></div>
-                <div class="window" style="top: 40px; left: 10px;"></div>
-                <div class="window" style="top: 40px; left: 30px;"></div>
-                <div class="window" style="top: 40px; left: 50px;"></div>
-                <div class="window" style="top: 65px; left: 10px;"></div>
-                <div class="window" style="top: 65px; left: 30px;"></div>
-                <div class="window" style="top: 65px; left: 50px;"></div>
-                <div class="window" style="top: 90px; left: 10px;"></div>
-                <div class="window" style="top: 90px; left: 30px;"></div>
-                <div class="window" style="top: 90px; left: 50px;"></div>
+                <div class="window" style="top: 10%; left: 12%;"></div>
+                <div class="window" style="top: 10%; left: 40%;"></div>
+                <div class="window" style="top: 10%; left: 68%;"></div>
+                <div class="window" style="top: 28%; left: 12%;"></div>
+                <div class="window" style="top: 28%; left: 40%;"></div>
+                <div class="window" style="top: 28%; left: 68%;"></div>
+                <div class="window" style="top: 46%; left: 12%;"></div>
+                <div class="window" style="top: 46%; left: 40%;"></div>
+                <div class="window" style="top: 46%; left: 68%;"></div>
+                <div class="window" style="top: 64%; left: 12%;"></div>
+                <div class="window" style="top: 64%; left: 40%;"></div>
+                <div class="window" style="top: 64%; left: 68%;"></div>
             </div>
             <div class="building building-3">
-                <div class="window" style="top: 20px; left: 10px;"></div>
-                <div class="window" style="top: 20px; left: 30px;"></div>
-                <div class="window" style="top: 45px; left: 10px;"></div>
-                <div class="window" style="top: 45px; left: 30px;"></div>
-                <div class="window" style="top: 70px; left: 10px;"></div>
-                <div class="window" style="top: 70px; left: 30px;"></div>
+                <div class="window" style="top: 18%; left: 15%;"></div>
+                <div class="window" style="top: 18%; left: 55%;"></div>
+                <div class="window" style="top: 40%; left: 15%;"></div>
+                <div class="window" style="top: 40%; left: 55%;"></div>
+                <div class="window" style="top: 62%; left: 15%;"></div>
+                <div class="window" style="top: 62%; left: 55%;"></div>
             </div>
         </div>
         
-        <h2 class="text-2xl font-bold text-cyan-400 mb-3 tracking-wider">SECCOM 2025</h2>
-        <p class="text-slate-400 mb-6 text-sm">Digital Treasure Hunt</p>
+        <h2 class="text-xl sm:text-2xl font-bold text-cyan-400 mb-2 sm:mb-3 tracking-wider text-center">SECCOM 2025</h2>
+        <p class="text-slate-400 mb-4 sm:mb-6 text-xs sm:text-sm text-center">Digital Treasure Hunt</p>
         
         <div class="progress-container">
             <div class="progress-bar" id="initialProgress"></div>
         </div>
-        <p class="text-cyan-300 text-sm mt-4 loading-dots" id="initialLoadText">Initializing campus map</p>
+        <p class="text-cyan-300 text-xs sm:text-sm mt-3 sm:mt-4 loading-dots text-center px-4" id="initialLoadText">Initializing campus map</p>
     </div>
 
     <!-- Event Details Panel -->
     <div class="event-panel" id="eventPanel">
         <div class="event-content">
-            <div class="text-center mb-8" style="position: relative; z-index: 1;">
-                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png" alt="Logo" class="w-20 h-20 mx-auto mb-4 pulse">
-                <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-3">
+            <div class="text-center mb-6 sm:mb-8" style="position: relative; z-index: 1;">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png" alt="Logo" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 pulse">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2 sm:mb-3 px-4">
                     Digital Treasure Hunt
                 </h1>
-                <p class="text-cyan-300 text-lg">SECCOM 2025 | Campus Adventure Challenge</p>
+                <p class="text-cyan-300 text-base sm:text-lg px-4">SECCOM 2025 | Campus Adventure</p>
             </div>
 
             <div style="position: relative; z-index: 1;">
                 <div class="detail-card">
-                    <div class="flex items-start">
-                        <span class="text-3xl mr-4">🎯</span>
-                        <div>
-                            <h3 class="text-xl font-bold text-cyan-400 mb-2">Mission Objective</h3>
-                            <p class="text-slate-300 text-sm leading-relaxed">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl sm:text-3xl flex-shrink-0">🎯</span>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base sm:text-xl font-bold text-cyan-400 mb-1 sm:mb-2">Mission Objective</h3>
+                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                                 Navigate through the campus, scan hidden QR codes at strategic locations, and solve challenging puzzles. Each clue leads you closer to the ultimate treasure.
                             </p>
                         </div>
@@ -443,11 +492,11 @@
                 </div>
 
                 <div class="detail-card">
-                    <div class="flex items-start">
-                        <span class="text-3xl mr-4">⚡</span>
-                        <div>
-                            <h3 class="text-xl font-bold text-cyan-400 mb-2">How It Works</h3>
-                            <p class="text-slate-300 text-sm leading-relaxed">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl sm:text-3xl flex-shrink-0">⚡</span>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base sm:text-xl font-bold text-cyan-400 mb-1 sm:mb-2">How It Works</h3>
+                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                                 Real-world exploration meets digital innovation. Use your smartphone to scan QR codes, unlock clues, and compete against time. Speed, strategy, and teamwork are essential.
                             </p>
                         </div>
@@ -455,11 +504,11 @@
                 </div>
 
                 <div class="detail-card">
-                    <div class="flex items-start">
-                        <span class="text-3xl mr-4">🏆</span>
-                        <div>
-                            <h3 class="text-xl font-bold text-cyan-400 mb-2">Victory Conditions</h3>
-                            <p class="text-slate-300 text-sm leading-relaxed">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl sm:text-3xl flex-shrink-0">🏆</span>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base sm:text-xl font-bold text-cyan-400 mb-1 sm:mb-2">Victory Conditions</h3>
+                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                                 The team that completes challenges in the allotted time wins. Every second counts, every decision matters. Are you ready for the hunt?
                             </p>
                         </div>
@@ -467,7 +516,7 @@
                 </div>
             </div>
 
-            <div class="text-center mt-10" style="position: relative; z-index: 1;">
+            <div class="text-center mt-6 sm:mt-10" style="position: relative; z-index: 1;">
                 <button onclick="startAdventure()" class="btn-adventure">
                     <span style="position: relative; z-index: 1;">START YOUR ADVENTURE →</span>
                 </button>
@@ -478,14 +527,20 @@
     <!-- Navigation Loading Screen -->
     <div class="nav-loading" id="navLoading">
         <div class="loading-spinner"></div>
-        <h2 class="text-2xl font-bold text-cyan-400 mb-3">Preparing Your Journey</h2>
-        <p class="text-slate-400 text-sm loading-dots" id="navLoadText">Loading hunt resources</p>
-        <div class="progress-container mt-6">
+        <h2 class="text-xl sm:text-2xl font-bold text-cyan-400 mb-2 sm:mb-3 text-center px-4">Preparing Your Journey</h2>
+        <p class="text-slate-400 text-xs sm:text-sm loading-dots text-center px-4" id="navLoadText">Loading hunt resources</p>
+        <div class="progress-container mt-4 sm:mt-6">
             <div class="progress-bar" id="navProgress"></div>
         </div>
     </div>
 
     <script>
+        // Prevent accidental back navigation
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+
         // Initial page load simulation
         let progress = 0;
         const loadingMessages = [
@@ -519,6 +574,11 @@
 
         // Start adventure button handler
         function startAdventure() {
+            // Haptic feedback for mobile (if supported)
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
             // Hide event panel
             document.getElementById('eventPanel').classList.remove('show');
             
@@ -548,12 +608,20 @@
                 if (navProgress >= 100) {
                     clearInterval(navLoadInterval);
                     setTimeout(() => {
-                        // Replace 'your-login-page.html' with your actual login page URL
+                        // Replace with your actual page URL
                         window.location.href = 'trasure-hunt.html';
                     }, 500);
                 }
             }, 200);
         }
+
+        // Prevent pull-to-refresh on mobile
+        document.body.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.event-panel') && document.getElementById('eventPanel').classList.contains('show')) {
+                // Allow scrolling in event panel
+                return;
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>

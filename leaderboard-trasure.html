@@ -2,235 +2,801 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECCOM 2025 - Live Competition Dashboard</title>
-    <link rel="icon" type="image/svg+xml" href="https://i.ibb.co/BV54VqJ0/cludologo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Live Leaderboard - SECCOM 2025</title>
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI,system-ui,sans-serif');
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: #f3f4f6;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
-        .dashboard-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid #e5e7eb;
+        
+        body {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
         }
-        .metric-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        /* Tech Grid Background - Optimized for mobile */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 0;
         }
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+        /* Animated Particles - Reduced for mobile performance */
+        .particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: #00ffff;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            animation: particle-float 15s infinite;
+            box-shadow: 0 0 8px #00ffff;
         }
-        .progress-bar {
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+
+        @keyframes particle-float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
+            }
         }
+
+        /* Glass Effect Cards */
+        .glass-card {
+            background: rgba(26, 31, 53, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-card:active {
+            border-color: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 12px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        /* Top 3 Podium Cards */
+        .rank-1-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.2) 100%);
+            border: 2px solid #FFD700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .rank-2-card {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.2) 0%, rgba(168, 168, 168, 0.2) 100%);
+            border: 2px solid #C0C0C0;
+            box-shadow: 0 0 25px rgba(192, 192, 192, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .rank-3-card {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.2) 0%, rgba(184, 115, 51, 0.2) 100%);
+            border: 2px solid #CD7F32;
+            box-shadow: 0 0 25px rgba(205, 127, 50, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Team Card Animations */
+        .team-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideIn 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .team-card:active::before {
+            left: 100%;
+        }
+
+        .team-card:active {
+            transform: scale(0.98);
+            border-color: rgba(0, 255, 255, 0.6);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Rank Badge */
         .rank-badge {
-            width: 32px; height: 32px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 600; color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            position: relative;
+            overflow: hidden;
         }
-        .rank-1 { background: linear-gradient(135deg, #ffd700, #fde047); color: #422006; }
-        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #e5e7eb); color: #1f2937; }
-        .rank-3 { background: linear-gradient(135deg, #cd7f32, #f59e0b); }
-        .rank-other { background: #4f46e5; }
-        .achievement-badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 2px 8px; border-radius: 12px;
-            font-size: 11px; font-weight: 500;
+
+        .rank-badge::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shine 3s infinite;
         }
-        .badge-First-Blood { background: #fee2e2; color: #dc2626; }
-        .badge-Master-Detective { background: #dbeafe; color: #2563eb; }
-        .badge-Rabbit-Hunter { background: #dcfce7; color: #16a34a; }
-        .header-gradient { background: linear-gradient(90deg, #005A9E 0%, #0078D4 100%); }
-        .live-indicator::before {
-            content: ''; position: absolute; left: -12px; top: 50%;
-            transform: translateY(-50%); width: 8px; height: 8px;
-            background: #22c55e; border-radius: 50%;
-            animation: blink 1.5s infinite;
+
+        @keyframes shine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+
+        /* Score Display */
+        .score-display {
+            background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4);
+            position: relative;
+        }
+
+        /* Glow Effect */
+        .glow-text {
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Trophy Icons with Glow */
+        .trophy-glow {
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        /* Loading Animation */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:active {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.4);
+            transform: scale(0.98);
+        }
+
+        /* Refresh Button */
+        .refresh-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            touch-action: manipulation;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+
+        .refresh-btn:active i {
+            animation: rotate360 0.6s ease;
+        }
+
+        @keyframes rotate360 {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mobile Podium - Horizontal Scroll */
+        .mobile-podium {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 0 4px 16px 4px;
+        }
+
+        .mobile-podium::-webkit-scrollbar {
+            display: none;
+        }
+
+        .mobile-podium-card {
+            flex: 0 0 280px;
+            scroll-snap-align: center;
+        }
+
+        /* Desktop Podium */
+        .desktop-podium {
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Message Banner */
+        .message-banner {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(0, 128, 255, 0.2) 100%);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Number Counter Animation */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .count-animation {
+            animation: countUp 0.5s ease-out;
+        }
+
+        /* Desktop Breakpoints */
+        @media (min-width: 768px) {
+            .mobile-podium {
+                display: none;
+            }
+
+            .desktop-podium {
+                display: grid;
+            }
+
+            .grid-background {
+                background-size: 50px 50px;
+            }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 640px) {
+            .team-card {
+                padding: 12px;
+            }
+
+            .particle {
+                display: none;
+            }
+        }
+
+        /* Small mobile devices */
+        @media (max-width: 375px) {
+            .mobile-podium-card {
+                flex: 0 0 260px;
+            }
+        }
+
+        /* Prevent text selection on touch */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Prevent zoom on input focus */
+        @media (max-width: 768px) {
+            select, textarea, input {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-100">
-    <!-- Header -->
-    <header class="header-gradient text-white p-4 shadow-lg">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png" alt="Logo" class="w-12 h-12">
-                <div>
-                    <h1 class="text-2xl font-bold">SECCOM 2025 Competition Dashboard</h1>
-                    <p class="text-blue-100">Live Treasure Hunt Analytics</p>
-                </div>
-            </div>
-            <div class="text-right">
-                <div class="live-indicator relative text-sm font-medium">LIVE</div>
-                <div id="lastUpdate" class="text-xs text-blue-200">Connecting...</div>
-            </div>
-        </div>
-    </header>
+<body>
+    <!-- Tech Grid Background -->
+    <div class="grid-background"></div>
 
-    <div class="max-w-7xl mx-auto p-4 md:p-6">
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="metric-card p-4"><h3 class="text-sm font-medium text-gray-600">Total Teams</h3><p id="totalTeams" class="text-3xl font-bold text-gray-900">--</p></div>
-            <div class="metric-card p-4"><h3 class="text-sm font-medium text-gray-600">Highest Score</h3><p id="highestScore" class="text-3xl font-bold text-green-600">--</p></div>
-            <div class="metric-card p-4"><h3 class="text-sm font-medium text-gray-600">Average Score</h3><p id="averageScore" class="text-3xl font-bold text-purple-600">--</p></div>
-            <div class="metric-card p-4"><h3 class="text-sm font-medium text-gray-600">Clues Solved</h3><p id="cluesSolved" class="text-3xl font-bold text-orange-600">--</p></div>
-        </div>
+    <!-- Animated Particles -->
+    <div class="particle" style="left: 15%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 40%; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 85%; animation-delay: 6s;"></div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <!-- Leaderboard Table -->
-            <div class="xl:col-span-2 dashboard-card p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-ranking-star text-blue-600 mr-2"></i>Live Rankings</h2>
-                <div id="leaderboardTable" class="space-y-2"></div>
+    <!-- Main Container -->
+    <div class="min-h-screen py-4 sm:py-8 px-3 sm:px-4 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header: Centered logo and title, single line, logo left, text center -->
+            <div class="flex items-center justify-center mb-6 sm:mb-10"></div>
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png"
+                     alt="Brainware University Logo" class="w-8 h-8 sm:w-10 sm:h-10 mr-2 drop-shadow-2xl opacity-90">
+                <span class="text-xs sm:text-sm font-semibold text-cyan-300 tracking-wide">
+                    Live Leaderboard
+                </span>
             </div>
-            
-            <!-- Score Distribution & Achievements -->
-            <div class="space-y-6">
-                <div class="dashboard-card p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-chart-pie text-purple-600 mr-2"></i>Score Distribution</h3>
-                    <div style="height: 200px; position: relative;"><canvas id="scoreChart"></canvas></div>
+
+            <!-- Custom Message Banner -->
+            <div id="custom-message" class="hidden message-banner rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 text-center">
+                <h3 id="message-title" class="text-lg sm:text-xl md:text-2xl font-bold text-cyan-300 mb-2"></h3>
+                <p id="message-content" class="text-xs sm:text-sm md:text-base text-slate-300"></p>
+            </div>
+
+            <!-- Hidden Message -->
+            <div id="hidden-message" class="hidden glass-card rounded-xl sm:rounded-2xl p-6 sm:p-10 text-center">
+                <div class="max-w-md mx-auto">
+                    <i class="fas fa-eye-slash text-4xl sm:text-6xl text-cyan-400 mb-4 sm:mb-6 opacity-50"></i>
+                    <h2 class="text-xl sm:text-3xl font-bold text-white mb-3 sm:mb-4 px-4">Leaderboard Hidden</h2>
+                    <p class="text-slate-400 text-sm sm:text-lg mb-4 sm:mb-6 px-4">Rankings are currently concealed. Stay tuned for updates!</p>
+                    <button onclick="checkVisibility()" 
+                            class="refresh-btn bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg hover:shadow-2xl transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Check Again
+                    </button>
                 </div>
-                <div class="dashboard-card p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-medal text-yellow-500 mr-2"></i>Achievements Awarded</h3>
-                    <div id="achievementSummary" class="space-y-3"></div>
+            </div>
+
+            <!-- Leaderboard Content -->
+            <div id="leaderboard-content" class="hidden">
+                <!-- Stats Bar -->
+                <div class="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6">
+                        <div class="stat-card rounded-lg sm:rounded-xl p-3 sm:p-5 text-center">
+                            <i class="fas fa-users text-2xl sm:text-4xl text-cyan-400 mb-2 sm:mb-3"></i>
+                            <p class="text-2xl sm:text-4xl md:text-5xl font-black text-white count-animation" id="total-teams">0</p>
+                            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-1 sm:mt-2 text-slate-400">Total Teams</p>
+                        </div>
+                        <div class="stat-card rounded-lg sm:rounded-xl p-3 sm:p-5 text-center">
+                            <i class="fas fa-star text-2xl sm:text-4xl text-yellow-400 mb-2 sm:mb-3"></i>
+                            <p class="text-2xl sm:text-4xl md:text-5xl font-black text-white count-animation" id="top-score">0</p>
+                            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-1 sm:mt-2 text-slate-400">Top Score</p>
+                        </div>
+                        <div class="stat-card rounded-lg sm:rounded-xl p-3 sm:p-5 text-center col-span-2 sm:col-span-1">
+                            <i class="fas fa-clock text-2xl sm:text-4xl text-blue-400 mb-2 sm:mb-3"></i>
+                            <p class="text-xs sm:text-base font-bold text-cyan-300 count-animation" id="last-update">--</p>
+                            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-1 sm:mt-2 text-slate-400">Last Update</p>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Refresh Button -->
+                <div class="flex justify-end mb-4 sm:mb-6">
+                    <button onclick="loadLeaderboard()" 
+                            class="refresh-btn glass-card px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold text-cyan-400 hover:text-cyan-300 transition flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
+                        <i class="fas fa-sync-alt text-sm sm:text-lg"></i>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Podium (Horizontal Scroll) -->
+                <div class="mobile-podium mb-6 sm:mb-8" id="mobile-podium">
+                    <!-- 1st Place -->
+                    <div class="mobile-podium-card team-card rank-1-card rounded-2xl p-5 text-center flex flex-col justify-between min-h-[280px]">
+                        <div>
+                            <div class="text-6xl mb-3 trophy-glow animate-pulse">🏆</div>
+                            <div class="text-5xl font-black text-yellow-300 mb-2">1</div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-xl text-white mb-3 truncate px-2" id="mobile-podium-team-1">---</h3>
+                            <div class="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3 inline-block">
+                                <span class="text-4xl font-black text-white" id="mobile-podium-score-1">0</span>
+                                <span class="text-sm ml-2 text-yellow-300 font-semibold">PTS</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2nd Place -->
+                    <div class="mobile-podium-card team-card rank-2-card rounded-2xl p-5 text-center flex flex-col justify-between min-h-[280px]">
+                        <div>
+                            <div class="text-6xl mb-3 trophy-glow">🥈</div>
+                            <div class="text-5xl font-black text-slate-300 mb-2">2</div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-xl text-white mb-3 truncate px-2" id="mobile-podium-team-2">---</h3>
+                            <div class="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3 inline-block">
+                                <span class="text-4xl font-black text-white" id="mobile-podium-score-2">0</span>
+                                <span class="text-sm ml-2 text-slate-300 font-semibold">PTS</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3rd Place -->
+                    <div class="mobile-podium-card team-card rank-3-card rounded-2xl p-5 text-center flex flex-col justify-between min-h-[280px]">
+                        <div>
+                            <div class="text-6xl mb-3 trophy-glow">🥉</div>
+                            <div class="text-5xl font-black text-orange-300 mb-2">3</div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-xl text-white mb-3 truncate px-2" id="mobile-podium-team-3">---</h3>
+                            <div class="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3 inline-block">
+                                <span class="text-4xl font-black text-white" id="mobile-podium-score-3">0</span>
+                                <span class="text-sm ml-2 text-slate-300 font-semibold">PTS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Podium (Original 3-column grid) -->
+                <div class="desktop-podium grid-cols-3 gap-6 mb-10" id="desktop-podium">
+                    <!-- 2nd Place -->
+                    <div class="team-card rank-2-card rounded-2xl p-6 text-center flex flex-col justify-end" style="height: 260px; margin-top: 60px;">
+                        <div class="text-7xl mb-4 trophy-glow">🥈</div>
+                        <div class="text-5xl font-black text-slate-300 mb-3">2</div>
+                        <h3 class="font-bold text-xl text-white mb-4 truncate px-2" id="desktop-podium-team-2">---</h3>
+                        <div class="bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 inline-block">
+                            <span class="text-4xl font-black text-white" id="desktop-podium-score-2">0</span>
+                            <span class="text-sm ml-2 text-slate-300 font-semibold">PTS</span>
+                        </div>
+                    </div>
+
+                    <!-- 1st Place -->
+                    <div class="team-card rank-1-card rounded-2xl p-6 text-center flex flex-col justify-end" style="height: 320px;">
+                        <div class="text-8xl mb-4 trophy-glow animate-pulse">🏆</div>
+                        <div class="text-6xl font-black text-yellow-300 mb-3">1</div>
+                        <h3 class="font-bold text-2xl text-white mb-4 truncate px-2" id="desktop-podium-team-1">---</h3>
+                        <div class="bg-white/20 backdrop-blur-sm rounded-2xl px-8 py-5 inline-block">
+                            <span class="text-5xl font-black text-white" id="desktop-podium-score-1">0</span>
+                            <span class="text-base ml-2 text-yellow-300 font-semibold">PTS</span>
+                        </div>
+                    </div>
+
+                    <!-- 3rd Place -->
+                    <div class="team-card rank-3-card rounded-2xl p-6 text-center flex flex-col justify-end" style="height: 220px; margin-top: 100px;">
+                        <div class="text-7xl mb-4 trophy-glow">🥉</div>
+                        <div class="text-5xl font-black text-orange-300 mb-3">3</div>
+                        <h3 class="font-bold text-xl text-white mb-4 truncate px-2" id="desktop-podium-team-3">---</h3>
+                        <div class="bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 inline-block">
+                            <span class="text-4xl font-black text-white" id="desktop-podium-score-3">0</span>
+                            <span class="text-sm ml-2 text-slate-300 font-semibold">PTS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Teams List -->
+                <div class="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+                    <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6 flex items-center">
+                        <i class="fas fa-list-ol text-cyan-400 mr-3"></i>
+                        All Rankings
+                    </h2>
+                    <div id="teams-list" class="space-y-3 sm:space-y-4">
+                        <!-- Loading skeletons -->
+                        <div class="skeleton h-20 sm:h-24 rounded-xl sm:rounded-2xl"></div>
+                        <div class="skeleton h-20 sm:h-24 rounded-xl sm:rounded-2xl"></div>
+                        <div class="skeleton h-20 sm:h-24 rounded-xl sm:rounded-2xl"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="glass-card rounded-xl sm:rounded-2xl p-8 sm:p-12 md:p-16 text-center">
+                <i class="fas fa-spinner fa-spin text-5xl sm:text-6xl md:text-7xl text-cyan-400 mb-4 sm:mb-6"></i>
+                <p class="text-lg sm:text-xl md:text-2xl font-bold text-white px-4">Synchronizing Rankings...</p>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">Please wait</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="hidden glass-card rounded-xl sm:rounded-2xl p-6 sm:p-10 text-center">
+                <i class="fas fa-exclamation-triangle text-5xl sm:text-6xl md:text-7xl text-red-500 mb-4 sm:mb-6"></i>
+                <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 px-4">Connection Failed</h3>
+                <p class="text-slate-400 mb-4 sm:mb-6 text-sm sm:text-base md:text-lg px-4" id="error-message">Unable to load leaderboard data.</p>
+                <button onclick="initialize()" 
+                        class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg hover:shadow-2xl transition">
+                    <i class="fas fa-redo mr-2"></i>Retry Connection
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <script>
+        // Firebase Configuration
         const firebaseConfig = {
-            // PASTE YOUR FIREBASE CONFIG KEYS HERE
-             apiKey: "AIzaSyBokbGtzP7ZSp1mFS5K8hDUGRUB0E37UPs",
-  authDomain: "treasurehuntcompetition2025.firebaseapp.com",
-  projectId: "treasurehuntcompetition2025",
-  storageBucket: "treasurehuntcompetition2025.firebasestorage.app",
-  messagingSenderId: "983621809061",
-  appId: "1:983621809061:web:ed668aceef58addbb1ee4c"
+            apiKey: "AIzaSyBokbGtzP7ZSp1mFS5K8hDUGRUB0E37UPs",
+            authDomain: "treasurehuntcompetition2025.firebaseapp.com",
+            projectId: "treasurehuntcompetition2025",
+            storageBucket: "treasurehuntcompetition2025.firebasestorage.app",
+            messagingSenderId: "983621809061",
+            appId: "1:983621809061:web:ed668aceef58addbb1ee4c"
         };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let scoreChart;
+        // DOM Elements
+        const elements = {
+            loadingState: document.getElementById('loading-state'),
+            errorState: document.getElementById('error-state'),
+            errorMessage: document.getElementById('error-message'),
+            hiddenMessage: document.getElementById('hidden-message'),
+            customMessage: document.getElementById('custom-message'),
+            messageTitle: document.getElementById('message-title'),
+            messageContent: document.getElementById('message-content'),
+            leaderboardContent: document.getElementById('leaderboard-content'),
+            teamsList: document.getElementById('teams-list'),
+            mobilePodium: document.getElementById('mobile-podium'),
+            desktopPodium: document.getElementById('desktop-podium'),
+            totalTeams: document.getElementById('total-teams'),
+            topScore: document.getElementById('top-score'),
+            lastUpdate: document.getElementById('last-update')
+        };
 
-        function initializeCharts() {
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            scoreChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Top Tier (700+)', 'Mid Tier (400-699)', 'Starting (0-399)'],
-                    datasets: [{ data: [0, 0, 0], backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'], borderWidth: 0 }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } } }
+        // State
+        let teamsData = [];
+        let isVisible = false;
+
+        // Utility Functions
+        function formatTime(timestamp) {
+            if (!timestamp) return '--';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+
+            if (seconds < 60) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function showElement(element) {
+            element.classList.remove('hidden');
+        }
+
+        function hideElement(element) {
+            element.classList.add('hidden');
+        }
+
+        function showError(message) {
+            hideElement(elements.loadingState);
+            hideElement(elements.leaderboardContent);
+            hideElement(elements.hiddenMessage);
+            elements.errorMessage.textContent = message;
+            showElement(elements.errorState);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Check Visibility
+        async function checkVisibility() {
+            try {
+                const doc = await db.collection('leaderboard_config').doc('settings').get();
+                
+                if (doc.exists) {
+                    const data =doc.data();
+                    isVisible = data.isVisible || false;
+                    
+                    if (data.showMessage && data.messageTitle && data.messageContent) {
+                        elements.messageTitle.textContent = data.messageTitle;
+                        elements.messageContent.textContent = data.messageContent;
+                        showElement(elements.customMessage);
+                    } else {
+                        hideElement(elements.customMessage);
+                    }
+                    
+                    return isVisible;
+                }
+                return true;
+            } catch (err) {
+                console.error('Error checking visibility:', err);
+                return true;
+            }
+        }
+
+        // Load Leaderboard
+        async function loadLeaderboard() {
+            try {
+                const visible = await checkVisibility();
+                
+                if (!visible) {
+                    hideElement(elements.loadingState);
+                    hideElement(elements.leaderboardContent);
+                    hideElement(elements.errorState);
+                    showElement(elements.hiddenMessage);
+                    return;
+                }
+
+                const snapshot = await db.collection('teams').orderBy('score', 'desc').get();
+                
+                teamsData = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    teamsData.push({
+                        id: doc.id,
+                        name: data.teamName || data.name || 'Unknown Team',
+                        score: data.score || 0
+                    });
+                });
+
+                teamsData.sort((a, b) => b.score - a.score);
+                renderLeaderboard();
+                
+                hideElement(elements.loadingState);
+                hideElement(elements.errorState);
+                hideElement(elements.hiddenMessage);
+                showElement(elements.leaderboardContent);
+
+            } catch (err) {
+                console.error('Error loading leaderboard:', err);
+                showError('Connection error. Please check your network and try again.');
+            }
+        }
+
+        // Render Leaderboard
+        function renderLeaderboard() {
+            if (teamsData.length === 0) {
+                elements.teamsList.innerHTML = `
+                    <div class="text-center py-12 sm:py-16 text-slate-400">
+                        <i class="fas fa-inbox text-5xl sm:text-6xl mb-4 sm:mb-6 opacity-50"></i>
+                        <p class="text-xl sm:text-2xl font-bold px-4">No Teams Registered</p>
+                        <p class="text-sm sm:text-base mt-2 px-4">Rankings will appear once teams join the hunt</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Update stats
+            const topScore = teamsData.length > 0 ? teamsData[0].score : 0;
+            
+            elements.totalTeams.textContent = teamsData.length;
+            elements.topScore.textContent = topScore;
+            elements.lastUpdate.textContent = formatTime(new Date());
+
+            // Render podium (both mobile and desktop)
+            if (teamsData.length >= 3) {
+                // Mobile podium
+                document.getElementById('mobile-podium-team-1').textContent = teamsData[0].name;
+                document.getElementById('mobile-podium-score-1').textContent = teamsData[0].score;
+                document.getElementById('mobile-podium-team-2').textContent = teamsData[1].name;
+                document.getElementById('mobile-podium-score-2').textContent = teamsData[1].score;
+                document.getElementById('mobile-podium-team-3').textContent = teamsData[2].name;
+                document.getElementById('mobile-podium-score-3').textContent = teamsData[2].score;
+
+                // Desktop podium
+                document.getElementById('desktop-podium-team-1').textContent = teamsData[0].name;
+                document.getElementById('desktop-podium-score-1').textContent = teamsData[0].score;
+                document.getElementById('desktop-podium-team-2').textContent = teamsData[1].name;
+                document.getElementById('desktop-podium-score-2').textContent = teamsData[1].score;
+                document.getElementById('desktop-podium-team-3').textContent = teamsData[2].name;
+                document.getElementById('desktop-podium-score-3').textContent = teamsData[2].score;
+            }
+
+            // Render all teams
+            elements.teamsList.innerHTML = teamsData.map((team, index) => {
+                const rank = index + 1;
+                
+                let medalIcon = '';
+                let cardClass = 'glass-card';
+                let rankDisplay = `<div class="rank-badge w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl sm:rounded-2xl text-white font-black text-lg sm:text-xl flex-shrink-0">${rank}</div>`;
+                
+                if (rank === 1) {
+                    medalIcon = '<div class="text-4xl sm:text-5xl trophy-glow">🏆</div>';
+                    cardClass = 'rank-1-card';
+                } else if (rank === 2) {
+                    medalIcon = '<div class="text-4xl sm:text-5xl trophy-glow">🥈</div>';
+                    cardClass = 'rank-2-card';
+                } else if (rank === 3) {
+                    medalIcon = '<div class="text-4xl sm:text-5xl trophy-glow">🥉</div>';
+                    cardClass = 'rank-3-card';
+                }
+
+                return `
+                    <div class="team-card ${cardClass} rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-xl" style="animation-delay: ${index * 0.05}s">
+                        <div class="flex items-center gap-3 sm:gap-4">
+                            <!-- Rank/Medal -->
+                            <div class="flex-shrink-0 text-center">
+                                ${medalIcon || rankDisplay}
+                            </div>
+
+                            <!-- Team Name -->
+                            <div class="flex-grow min-w-0">
+                                <h3 class="font-black text-white text-base sm:text-xl md:text-2xl truncate">${escapeHtml(team.name)}</h3>
+                            </div>
+
+                            <!-- Score -->
+                            <div class="flex-shrink-0">
+                                <div class="score-display text-white px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-center min-w-[70px] sm:min-w-[100px]">
+                                    <div class="text-xl sm:text-3xl md:text-4xl font-black">${team.score}</div>
+                                    <div class="text-[9px] sm:text-xs font-bold opacity-90 tracking-wider">PTS</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Real-time Updates
+        function setupRealtimeListener() {
+            db.collection('leaderboard_config').doc('settings').onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const newVisibility = data.isVisible || false;
+                    
+                    if (newVisibility !== isVisible) {
+                        loadLeaderboard();
+                    }
+                }
+            });
+
+            db.collection('teams').onSnapshot(() => {
+                if (isVisible) {
+                    loadLeaderboard();
                 }
             });
         }
 
-        function getAchievementBadge(achievement) {
-            const badges = {
-                'First Blood': { class: 'badge-First-Blood', icon: 'fa-skull-crossbones' },
-                'Master Detective': { class: 'badge-Master-Detective', icon: 'fa-user-secret' },
-                'Rabbit Hunter': { class: 'badge-Rabbit-Hunter', icon: 'fa-carrot' }
-            };
-            const badge = badges[achievement] || { class: 'badge-Master-Detective', icon: 'fa-star' };
-            return `<span class="achievement-badge ${badge.class}"><i class="fas ${badge.icon} text-xs"></i> ${achievement}</span>`;
-        }
-        
-        function updateDashboard(teams) {
-            // KPIs
-            document.getElementById('totalTeams').textContent = teams.length;
-            const highestScore = teams.length > 0 ? Math.max(...teams.map(t => t.score)) : 0;
-            document.getElementById('highestScore').textContent = highestScore.toLocaleString();
-            const averageScore = teams.length > 0 ? Math.round(teams.reduce((sum, t) => sum + t.score, 0) / teams.length) : 0;
-            document.getElementById('averageScore').textContent = averageScore.toLocaleString();
-            const cluesSolved = teams.reduce((sum, t) => sum + (t.solvedClues || []).length, 0);
-            document.getElementById('cluesSolved').textContent = cluesSolved;
-
-            // Leaderboard Table
-            const maxScore = teams.length > 0 ? teams[0].score : 1;
-            const leaderboardHTML = teams.map((team, index) => {
-                const rank = index + 1;
-                const progressWidth = (team.score / maxScore) * 100;
-                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-                const achievementBadges = (team.achievements || []).map(getAchievementBadge).join(' ');
-                return `
-                    <div class="p-3 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-all duration-200">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="rank-badge ${rankClass}">${rank}</div>
-                                <div>
-                                    <h3 class="font-semibold text-gray-900">${team.teamName}</h3>
-                                    <div class="flex gap-1 mt-1">${achievementBadges}</div>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-xl font-bold text-gray-900">${team.score.toLocaleString()}</div>
-                                <div class="text-xs text-gray-500">points</div>
-                            </div>
-                        </div>
-                        <div class="mt-2"><div class="bg-gray-200 rounded-full h-1.5"><div class="bg-indigo-500 h-1.5 rounded-full" style="width: ${progressWidth}%"></div></div></div>
-                    </div>`;
-            }).join('');
-            document.getElementById('leaderboardTable').innerHTML = leaderboardHTML;
-
-            // Score Distribution Chart
-            const tiers = [
-                teams.filter(t => t.score >= 700).length,
-                teams.filter(t => t.score >= 400 && t.score < 700).length,
-                teams.filter(t => t.score < 400).length
-            ];
-            scoreChart.data.datasets[0].data = tiers;
-            scoreChart.update('none');
-
-            // Achievement Summary
-            const achievementCounts = {};
-            teams.forEach(team => (team.achievements || []).forEach(ach => achievementCounts[ach] = (achievementCounts[ach] || 0) + 1));
-            const achievementSummaryHTML = Object.entries(achievementCounts).map(([ach, count]) => {
-                const badge = {
-                    'First Blood': { color: 'red-600', icon: 'fa-skull-crossbones' },
-                    'Master Detective': { color: 'blue-600', icon: 'fa-user-secret' },
-                    'Rabbit Hunter': { color: 'green-600', icon: 'fa-carrot' }
-                }[ach] || { color: 'gray-600', icon: 'fa-star' };
-                return `<div class="flex justify-between items-center text-sm"><span class="font-medium text-gray-700"><i class="fas ${badge.icon} text-${badge.color} mr-2"></i>${ach}</span><span class="font-bold text-gray-900">${count}</span></div>`;
-            }).join('');
-            document.getElementById('achievementSummary').innerHTML = achievementSummaryHTML || '<p class="text-sm text-gray-500">No achievements earned yet.</p>';
+        // Initialize
+        async function initialize() {
+            console.log('Initializing leaderboard...');
             
-            document.getElementById('lastUpdate').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+            hideElement(elements.errorState);
+            showElement(elements.loadingState);
+            
+            try {
+                await loadLeaderboard();
+                setupRealtimeListener();
+                
+                // Auto-refresh every 30 seconds
+                setInterval(() => {
+                    if (isVisible && !document.hidden) {
+                        loadLeaderboard();
+                    }
+                }, 30000);
+
+            } catch (err) {
+                console.error('Initialization error:', err);
+                showError('Failed to initialize. Please refresh the page.');
+            }
         }
 
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeCharts();
-            db.collection('teams').orderBy('score', 'desc').onSnapshot(snapshot => {
-                const teams = [];
-                snapshot.forEach(doc => {
-                    if (!doc.data().isAdmin) teams.push(doc.data());
-                });
-                updateDashboard(teams);
-            }, error => {
-                console.error("Error fetching data: ", error);
-                document.getElementById('leaderboardTable').innerHTML = `<div class="text-center text-red-600 py-8">Unable to connect to live data</div>`;
-            });
-        });
+        // Prevent back navigation on mobile
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+
+        // Start the app
+        initialize();
     </script>
 </body>
 </html>
