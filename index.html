@@ -3,73 +3,557 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECCOM 2025 | Competition Portal</title>
+    <title>SECCOM 2025 | Digital Treasure Hunt</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/svg+xml" href="https://i.ibb.co/BV54VqJ0/cludologo.png">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #111827;
+            background: #0a0e1a;
+            overflow-x: hidden;
         }
-        .card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(148, 163, 184, 0.2);
+
+        /* Initial Loading Screen */
+        .initial-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .initial-loading.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Campus Building Animation */
+        .campus-scene {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            margin-bottom: 40px;
+        }
+
+        .building {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0f2847 100%);
+            border-radius: 4px 4px 0 0;
+            animation: buildingRise 1.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .building-1 {
+            left: 20px;
+            width: 60px;
+            height: 100px;
+            animation-delay: 0.2s;
+        }
+
+        .building-2 {
+            left: 90px;
+            width: 80px;
+            height: 140px;
+            animation-delay: 0.4s;
+        }
+
+        .building-3 {
+            left: 180px;
+            width: 70px;
+            height: 110px;
+            animation-delay: 0.6s;
+        }
+
+        .window {
+            position: absolute;
+            width: 8px;
+            height: 10px;
+            background: #fbbf24;
+            margin: 8px 6px;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+            animation: windowBlink 2s infinite;
+        }
+
+        @keyframes buildingRise {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes windowBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Scanning Effect */
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        /* Tech Grid Background */
+        .grid-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+
+        /* Loading Progress */
+        .progress-container {
+            width: 350px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #0080ff, #00ffff);
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progressShine 2s linear infinite;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        @keyframes progressShine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Event Details Panel */
+        .event-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .event-panel.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .event-content {
+            background: linear-gradient(135deg, #1a1f35 0%, #2d3748 100%);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 50px 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 100px rgba(0, 255, 255, 0.2);
+            animation: slideIn 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(100px) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .detail-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
-        .card:hover {
+
+        .detail-card:hover {
+            border-color: rgba(0, 255, 255, 0.5);
+            transform: translateX(10px);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .btn-adventure {
+            background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
+            color: #0a0e1a;
+            font-weight: 800;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-adventure::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-adventure:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-adventure:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(79, 70, 229, 0.5);
+            box-shadow: 0 15px 40px rgba(0, 255, 255, 0.6);
+        }
+
+        /* Navigation Loading Screen */
+        .nav-loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 100%);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .nav-loading.show {
+            display: flex;
+        }
+
+        .circuit-loader {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .circuit-line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            box-shadow: 0 0 10px #00ffff;
+            animation: circuitFlow 2s linear infinite;
+        }
+
+        .circuit-line.h {
+            height: 2px;
+            width: 100%;
+        }
+
+        .circuit-line.v {
+            width: 2px;
+            height: 100%;
+        }
+
+        @keyframes circuitFlow {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(0, 255, 255, 0.1);
+            border-top: 4px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
-<body class="text-white">
+<body>
+    <!-- Grid Background -->
+    <div class="grid-bg"></div>
 
-    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <header class="text-center mb-12">
-            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png" alt="Logo" class="w-20 h-20 mx-auto mb-4">
-            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                SECCOM 2025 Competition Portal
-            </h1>
-            <p class="text-slate-400 mt-2">Choose your challenge.</p>
-        </header>
-
-        <main class="w-full max-w-4xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Treasure Hunt Card -->
-                <a href="trasure-hunt.html" class="card rounded-lg p-8 text-center">
-                    <div class="text-5xl text-yellow-400 mb-4">
-                        <i class="fas fa-map-marked-alt"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-2">Treasure Hunt</h2>
-                    <p class="text-slate-400 mb-6">Solve clues in the real world by scanning QR codes. A game of speed and exploration.</p>
-                    <span class="inline-block bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                        Enter Treasure Hunt
-                    </span>
-                </a>
-
-                <!-- CTF Card -->
-                <a href="waiting.html" class="card rounded-lg p-8 text-center">
-                    <div class="text-5xl text-cyan-400 mb-4">
-                        <i class="fas fa-terminal"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-2">Capture The Flag (CTF)</h2>
-                    <p class="text-slate-400 mb-6">Solve digital challenges in categories like web, crypto, and forensics. A game of skill and logic.</p>
-                    <span class="inline-block bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                        Enter CTF Challenge
-                    </span>
-                </a>
+    <!-- Initial Loading Screen -->
+    <div class="initial-loading" id="initialLoading">
+        <div class="campus-scene">
+            <div class="scan-line"></div>
+            <div class="building building-1">
+                <div class="window" style="top: 20px; left: 10px;"></div>
+                <div class="window" style="top: 20px; left: 30px;"></div>
+                <div class="window" style="top: 40px; left: 10px;"></div>
+                <div class="window" style="top: 40px; left: 30px;"></div>
+                <div class="window" style="top: 60px; left: 10px;"></div>
+                <div class="window" style="top: 60px; left: 30px;"></div>
             </div>
-        </main>
-
-        <footer class="mt-12 text-center text-slate-500 text-sm">
-            <p>Powered by cludo.tech</p>
-        </footer>
+            <div class="building building-2">
+                <div class="window" style="top: 15px; left: 10px;"></div>
+                <div class="window" style="top: 15px; left: 30px;"></div>
+                <div class="window" style="top: 15px; left: 50px;"></div>
+                <div class="window" style="top: 40px; left: 10px;"></div>
+                <div class="window" style="top: 40px; left: 30px;"></div>
+                <div class="window" style="top: 40px; left: 50px;"></div>
+                <div class="window" style="top: 65px; left: 10px;"></div>
+                <div class="window" style="top: 65px; left: 30px;"></div>
+                <div class="window" style="top: 65px; left: 50px;"></div>
+                <div class="window" style="top: 90px; left: 10px;"></div>
+                <div class="window" style="top: 90px; left: 30px;"></div>
+                <div class="window" style="top: 90px; left: 50px;"></div>
+            </div>
+            <div class="building building-3">
+                <div class="window" style="top: 20px; left: 10px;"></div>
+                <div class="window" style="top: 20px; left: 30px;"></div>
+                <div class="window" style="top: 45px; left: 10px;"></div>
+                <div class="window" style="top: 45px; left: 30px;"></div>
+                <div class="window" style="top: 70px; left: 10px;"></div>
+                <div class="window" style="top: 70px; left: 30px;"></div>
+            </div>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-cyan-400 mb-3 tracking-wider">SECCOM 2025</h2>
+        <p class="text-slate-400 mb-6 text-sm">Digital Treasure Hunt</p>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="initialProgress"></div>
+        </div>
+        <p class="text-cyan-300 text-sm mt-4 loading-dots" id="initialLoadText">Initializing campus map</p>
     </div>
 
-    <!-- Font Awesome for icons -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <!-- Event Details Panel -->
+    <div class="event-panel" id="eventPanel">
+        <div class="event-content">
+            <div class="text-center mb-8" style="position: relative; z-index: 1;">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png" alt="Logo" class="w-20 h-20 mx-auto mb-4 pulse">
+                <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-3">
+                    Digital Treasure Hunt
+                </h1>
+                <p class="text-cyan-300 text-lg">SECCOM 2025 | Campus Adventure Challenge</p>
+            </div>
+
+            <div style="position: relative; z-index: 1;">
+                <div class="detail-card">
+                    <div class="flex items-start">
+                        <span class="text-3xl mr-4">🎯</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-cyan-400 mb-2">Mission Objective</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Navigate through the campus, scan hidden QR codes at strategic locations, and solve challenging puzzles. Each clue leads you closer to the ultimate treasure.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="flex items-start">
+                        <span class="text-3xl mr-4">⚡</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-cyan-400 mb-2">How It Works</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Real-world exploration meets digital innovation. Use your smartphone to scan QR codes, unlock clues, and compete against time. Speed, strategy, and teamwork are essential.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="flex items-start">
+                        <span class="text-3xl mr-4">🏆</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-cyan-400 mb-2">Victory Conditions</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                The team that completes challenges in the allotted time wins. Every second counts, every decision matters. Are you ready for the hunt?
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10" style="position: relative; z-index: 1;">
+                <button onclick="startAdventure()" class="btn-adventure">
+                    <span style="position: relative; z-index: 1;">START YOUR ADVENTURE →</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Loading Screen -->
+    <div class="nav-loading" id="navLoading">
+        <div class="loading-spinner"></div>
+        <h2 class="text-2xl font-bold text-cyan-400 mb-3">Preparing Your Journey</h2>
+        <p class="text-slate-400 text-sm loading-dots" id="navLoadText">Loading hunt resources</p>
+        <div class="progress-container mt-6">
+            <div class="progress-bar" id="navProgress"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initial page load simulation
+        let progress = 0;
+        const loadingMessages = [
+            'Initializing campus map',
+            'Loading challenge data',
+            'Syncing QR locations',
+            'Preparing hunt interface',
+            'Finalizing setup',
+            'Ready to begin'
+        ];
+
+        const initialLoadInterval = setInterval(() => {
+            progress += Math.random() * 12 + 3;
+            if (progress > 100) progress = 100;
+            
+            document.getElementById('initialProgress').style.width = progress + '%';
+            
+            const msgIndex = Math.min(Math.floor((progress / 100) * loadingMessages.length), loadingMessages.length - 1);
+            document.getElementById('initialLoadText').textContent = loadingMessages[msgIndex];
+            
+            if (progress >= 100) {
+                clearInterval(initialLoadInterval);
+                setTimeout(() => {
+                    document.getElementById('initialLoading').classList.add('fade-out');
+                    setTimeout(() => {
+                        document.getElementById('eventPanel').classList.add('show');
+                    }, 800);
+                }, 600);
+            }
+        }, 150);
+
+        // Start adventure button handler
+        function startAdventure() {
+            // Hide event panel
+            document.getElementById('eventPanel').classList.remove('show');
+            
+            // Show navigation loading
+            document.getElementById('navLoading').classList.add('show');
+            
+            // Simulate loading files from server
+            let navProgress = 0;
+            const navMessages = [
+                'Loading hunt resources',
+                'Connecting to server',
+                'Fetching challenge database',
+                'Loading map assets',
+                'Preparing authentication',
+                'Almost there'
+            ];
+            
+            const navLoadInterval = setInterval(() => {
+                navProgress += Math.random() * 10 + 5;
+                if (navProgress > 100) navProgress = 100;
+                
+                document.getElementById('navProgress').style.width = navProgress + '%';
+                
+                const msgIndex = Math.min(Math.floor((navProgress / 100) * navMessages.length), navMessages.length - 1);
+                document.getElementById('navLoadText').textContent = navMessages[msgIndex];
+                
+                if (navProgress >= 100) {
+                    clearInterval(navLoadInterval);
+                    setTimeout(() => {
+                        // Replace 'your-login-page.html' with your actual login page URL
+                        window.location.href = 'trasure-hunt.html';
+                    }, 500);
+                }
+            }, 200);
+        }
+    </script>
 </body>
 </html>
