@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECCOM 2025 | Treasure Hunt</title>
+    <link rel="icon" type="image/svg+xml" href="https://i.ibb.co/BV54VqJ0/cludologo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); min-height: 100vh; }
+        .glass-effect { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(148, 163, 184, 0.2); }
+        .card-hover { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .gradient-border { background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6); border-radius: 12px; padding: 2px; }
+        .gradient-border-inner { background: #1e293b; border-radius: 10px; height: 100%; }
+        .pulse-glow { animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.6); }
+        }
+        .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-left-color: #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .floating-particles { position: absolute; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+        .particle { position: absolute; background: linear-gradient(45deg, #06b6d4, #3b82f6); border-radius: 50%; animation: float 6s infinite linear; opacity: 0.1; }
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+        .solved-overlay { background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.3)); border: 2px solid rgba(34, 197, 94, 0.4); }
+        .qr-scanner-container { position: relative; width: 100%; height: 400px; max-width: 500px; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; }
+        .qr-scanner-video { width: 100%; height: 100%; object-fit: cover; }
+        .qr-scanner-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        .qr-scanner-frame { width: 250px; height: 250px; border: 3px solid #06b6d4; border-radius: 12px; position: relative; box-shadow: 0 0 30px rgba(6, 182, 212, 0.5); }
+        .qr-scan-line { position: absolute; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #06b6d4, transparent); animation: scan-line 2s linear infinite; }
+        @keyframes scan-line { 0% { top: 0; } 100% { top: 100%; } }
+        .qr-result-container { background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; padding: 1rem; margin-top: 1rem; word-break: break-all; }
+        .copy-feedback { position: absolute; background: rgba(34, 197, 94, 0.9); color: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; z-index: 1000; animation: fadeInOut 2s ease-in-out forwards; }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            20%, 80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+        .broadcast-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 60; max-width: 90%; width: 500px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.95), rgba(59, 130, 246, 0.95)); backdrop-filter: blur(20px); border: 1px solid rgba(6, 182, 212, 0.3); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        .modal-backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); }
+        @media (max-width: 768px) {
+            .card-hover:hover { transform: none; }
+            .qr-scanner-container { height: 300px; }
+            .qr-scanner-frame { width: 200px; height: 200px; }
+        }
+    </style>
+</head>
+<body class="text-white font-sans overflow-x-hidden">
+    <div class="floating-particles fixed inset-0 z-0">
+        <div class="particle" style="left: 10%; width: 4px; height: 4px; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; width: 6px; height: 6px; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 30%; width: 3px; height: 3px; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 40%; width: 5px; height: 5px; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 50%; width: 4px; height: 4px; animation-delay: 4s;"></div>
+    </div>
+
+    <div id="loader" class="fixed inset-0 modal-backdrop flex-col items-center justify-center hidden z-50">
+        <div class="glass-effect p-8 rounded-2xl text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-lg font-medium">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 relative z-10">
+        <div class="w-full max-w-md glass-effect rounded-2xl p-8">
+            <div class="text-center mb-8">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png" alt="Brainware University" class="w-16 h-16 mx-auto mb-4 opacity-90">
+                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">SECCOM 2025</h1>
+                <p class="text-lg text-slate-300 font-medium">Treasure Hunt</p>
+                <div class="w-24 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto mt-3 rounded-full"></div>
+            </div>
+            <div class="space-y-6">
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400"></i>
+                    <input id="login-email" type="email" placeholder="Team Login ID (email)" class="w-full pl-12 pr-4 py-4 bg-slate-700/50 border border-slate-600 text-white rounded-xl focus:outline-none">
+                </div>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400"></i>
+                    <input id="login-password" type="password" placeholder="Password" class="w-full pl-12 pr-4 py-4 bg-slate-700/50 border border-slate-600 text-white rounded-xl focus:outline-none">
+                </div>
+                <button id="login-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center shadow-lg pulse-glow">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </button>
+            </div>
+            <p id="login-error" class="text-red-400 text-center mt-6 h-4 font-medium text-sm"></p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard-screen" class="hidden min-h-screen flex flex-col relative z-10">
+        <header class="glass-effect p-6 shadow-2xl">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Brainware_University.svg/250px-Brainware_University.svg.png" alt="Logo" class="w-12 h-12 opacity-90">
+                        <div>
+                            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">SECCOM 2025 | Treasure Hunt</h1>
+                            <p class="text-sm text-slate-400 font-medium">Team: <span id="team-name" class="text-cyan-400 font-semibold"></span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-6 w-full sm:w-auto justify-between sm:justify-start">
+                        <div class="text-center">
+                            <p class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500"><span id="team-score">0</span></p>
+                            <p class="text-sm text-slate-400 font-medium">Points</p>
+                        </div>
+                        <button id="qr-scanner-button" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-medium py-3 px-5 rounded-xl transition-all shadow-lg text-sm">
+                            <i class="fas fa-qrcode mr-2"></i><span class="hidden sm:inline">QR Scanner</span>
+                        </button>
+                        <a href="leaderboard-trasure.html" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-medium py-3 px-5 rounded-xl transition-all shadow-lg text-sm inline-flex items-center">
+                            <i class="fas fa-trophy mr-2"></i><span class="hidden sm:inline">Leaderboard</span>
+                        </a>
+                        <button id="logout-button" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-5 rounded-xl transition-all shadow-lg text-sm">
+                            <i class="fas fa-sign-out-alt mr-2"></i><span class="hidden sm:inline">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="space-y-8">
+                    <div class="glass-effect rounded-2xl p-6 shadow-2xl">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+                            <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                                <i class="fas fa-puzzle-piece mr-3"></i>Available Clues
+                            </h3>
+                            <div class="gradient-border">
+                                <div class="gradient-border-inner px-4 py-2">
+                                    <span class="text-cyan-400 font-bold">Tier <span id="clue-tier">1</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="clues-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                        <div id="no-clues-message" class="text-center py-16 hidden">
+                            <div class="glass-effect rounded-xl p-8">
+                                <i class="fas fa-search text-4xl text-slate-400 mb-4"></i>
+                                <p class="text-slate-400 text-lg font-medium">Searching for new clues...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-2xl p-6 shadow-2xl">
+                        <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-6 pb-3 border-b border-slate-700">
+                            <i class="fas fa-broadcast-tower mr-3"></i>Live Event Feed
+                        </h3>
+                        <div id="event-feed" class="space-y-3 h-80 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="glass-effect p-4 mt-8">
+            <div class="max-w-7xl mx-auto text-center">
+                <p class="text-slate-400 font-medium text-sm">
+                    <i class="fas fa-code mr-2"></i>Developed by <span class="text-cyan-400 font-semibold">Rupam Gachchhit</span>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Clue Modal -->
+    <div id="clue-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4 hidden z-50">
+        <div class="glass-effect w-full max-w-2xl rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+            <button id="close-modal-button" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-white transition-all">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="mb-6 pr-8">
+                <h2 id="modal-clue-title" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-4"></h2>
+                <div class="glass-effect rounded-xl p-4">
+                    <p id="modal-clue-text" class="text-slate-300 text-lg leading-relaxed"></p>
+                </div>
+            </div>
+            <div id="hint-section" class="mb-6">
+                <button id="hint-button" class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+                    <i class="fas fa-lightbulb mr-2"></i>Get Hint (-30 Points)
+                </button>
+                <div id="hint-text" class="hidden mt-4 p-4 glass-effect rounded-xl text-yellow-300 font-medium"></div>
+            </div>
+            <div class="space-y-4">
+                <div class="relative">
+                    <i class="fas fa-flag absolute left-4 top-1/2 transform -translate-y-1/2 text-green-400"></i>
+                    <input id="modal-flag-input" type="text" placeholder="Enter Flag (e.g., FLAG{...})" class="w-full pl-12 pr-4 py-4 bg-slate-700/50 border border-slate-600 text-white rounded-xl focus:outline-none">
+                </div>
+                <button id="modal-submit-button" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 rounded-xl transition-all flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg pulse-glow">
+                    <i class="fas fa-paper-plane mr-2"></i>Submit Flag
+                </button>
+            </div>
+            <p id="modal-feedback" class="text-center mt-4 h-4 font-medium text-sm"></p>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qr-scanner-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4 hidden z-50">
+        <div class="glass-effect w-full max-w-2xl rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+            <button id="close-qr-modal-button" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-white transition-all">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="mb-6 pr-8">
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500 mb-4">
+                    <i class="fas fa-qrcode mr-3"></i>QR Code Scanner
+                </h2>
+                <p class="text-slate-400">Point your camera at a QR code to scan it</p>
+            </div>
+            <div class="space-y-6">
+                <div class="qr-scanner-container">
+                    <video id="qr-video" class="qr-scanner-video" playsinline muted></video>
+                    <div class="qr-scanner-overlay">
+                        <div class="qr-scanner-frame"><div class="qr-scan-line"></div></div>
+                    </div>
+                </div>
+                <div id="scanner-status" class="text-center">
+                    <div class="glass-effect rounded-xl p-4">
+                        <i class="fas fa-camera text-2xl text-cyan-400 mb-2"></i>
+                        <p class="text-slate-300 font-medium">Position QR code within the frame</p>
+                    </div>
+                </div>
+                <div id="qr-result-section" class="hidden">
+                    <h3 class="text-lg font-bold text-green-400 mb-3"><i class="fas fa-check-circle mr-2"></i>QR Code Detected!</h3>
+                    <div class="qr-result-container">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-slate-400 font-medium">Tap to copy:</span>
+                            <button id="copy-all-button" class="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-lg transition-all"><i class="fas fa-copy mr-1"></i>Copy All</button>
+                        </div>
+                        <div id="qr-result-text" class="text-white font-mono text-sm"></div>
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4">
+                    <button id="start-scanner-button" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium py-2 px-4 rounded-xl transition-all shadow-lg text-sm"><i class="fas fa-play mr-2"></i>Start Scanner</button>
+                    <button id="stop-scanner-button" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2 px-4 rounded-xl transition-all shadow-lg text-sm hidden"><i class="fas fa-stop mr-2"></i>Stop Scanner</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Broadcast Toast -->
+    <div id="broadcast-toast" class="hidden broadcast-toast rounded-2xl text-white p-6">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center flex-1">
+                <div class="flex-shrink-0"><i class="fas fa-bullhorn text-white mr-3 text-xl"></i></div>
+                <div class="flex-1"><p id="broadcast-message" class="font-medium leading-relaxed"></p></div>
+            </div>
+            <button id="close-broadcast" class="flex-shrink-0 ml-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-all"><i class="fas fa-times text-sm"></i></button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBokbGtzP7ZSp1mFS5K8hDUGRUB0E37UPs",
+            authDomain: "treasurehuntcompetition2025.firebaseapp.com",
+            projectId: "treasurehuntcompetition2025",
+            storageBucket: "treasurehuntcompetition2025.firebasestorage.app",
+            messagingSenderId: "983621809061",
+            appId: "1:983621809061:web:ed668aceef58addbb1ee4c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // State
+        const appState = { 
+            currentTeam: null, 
+            currentTier: null, 
+            unsubscribe: {}, 
+            lastBroadcastMessage: null,
+            qrScanner: null
+        };
+
+        // DOM Elements
+        const loader = document.getElementById('loader');
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginButton = document.getElementById('login-button');
+        const loginError = document.getElementById('login-error');
+        const teamNameEl = document.getElementById('team-name');
+        const teamScoreEl = document.getElementById('team-score');
+        const logoutButton = document.getElementById('logout-button');
+        const clueTierEl = document.getElementById('clue-tier');
+        const cluesGrid = document.getElementById('clues-grid');
+        const noCluesMessage = document.getElementById('no-clues-message');
+        const eventFeed = document.getElementById('event-feed');
+        const clueModal = document.getElementById('clue-modal');
+        const closeModalButton = document.getElementById('close-modal-button');
+        const modalClueTitle = document.getElementById('modal-clue-title');
+        const modalClueText = document.getElementById('modal-clue-text');
+        const hintSection = document.getElementById('hint-section');
+        const hintButton = document.getElementById('hint-button');
+        const hintText = document.getElementById('hint-text');
+        const modalFlagInput = document.getElementById('modal-flag-input');
+        const modalSubmitButton = document.getElementById('modal-submit-button');
+        const modalFeedback = document.getElementById('modal-feedback');
+        const broadcastToast = document.getElementById('broadcast-toast');
+        const broadcastMessage = document.getElementById('broadcast-message');
+        const closeBroadcast = document.getElementById('close-broadcast');
+        const qrScannerButton = document.getElementById('qr-scanner-button');
+        const qrScannerModal = document.getElementById('qr-scanner-modal');
+        const closeQrModalButton = document.getElementById('close-qr-modal-button');
+        const qrVideo = document.getElementById('qr-video');
+        const scannerStatus = document.getElementById('scanner-status');
+        const qrResultSection = document.getElementById('qr-result-section');
+        const qrResultText = document.getElementById('qr-result-text');
+        const copyAllButton = document.getElementById('copy-all-button');
+        const startScannerButton = document.getElementById('start-scanner-button');
+        const stopScannerButton = document.getElementById('stop-scanner-button');
+
+        const showLoader = (visible) => { loader.style.display = visible ? 'flex' : 'none'; };
+        
+        function clearAllListeners() {
+            Object.values(appState.unsubscribe).forEach(unsub => unsub());
+            appState.unsubscribe = {};
+        }
+
+        // QR Scanner Manager
+        class QRScannerManager {
+            constructor() {
+                this.scanner = null;
+                this.isActive = false;
+            }
+
+            async startScanner() {
+                try {
+                    this.scanner = new QrScanner(
+                        qrVideo,
+                        (result) => this.handleQRResult(result),
+                        {
+                            highlightScanRegion: false,
+                            highlightCodeOutline: false,
+                            preferredCamera: 'environment'
+                        }
+                    );
+
+                    await this.scanner.start();
+                    this.isActive = true;
+                    startScannerButton.classList.add('hidden');
+                    stopScannerButton.classList.remove('hidden');
+                    this.updateScannerStatus('Scanning for QR codes...', 'fa-search', 'text-cyan-400');
+                    return true;
+                } catch (error) {
+                    console.error('Failed to start QR scanner:', error);
+                    this.updateScannerStatus('Camera access denied or unavailable', 'fa-exclamation-triangle', 'text-red-400');
+                    return false;
+                }
+            }
+
+            stopScanner() {
+                if (this.scanner) {
+                    this.scanner.stop();
+                    this.scanner.destroy();
+                    this.scanner = null;
+                }
+                if (qrVideo) qrVideo.srcObject = null;
+                this.isActive = false;
+                startScannerButton.classList.remove('hidden');
+                stopScannerButton.classList.add('hidden');
+                qrResultSection.classList.add('hidden');
+                this.updateScannerStatus('Camera stopped', 'fa-camera', 'text-slate-400');
+            }
+
+            handleQRResult(result) {
+                const qrData = typeof result === 'string' ? result : result.data;
+                console.log('QR Code detected:', qrData);
+                qrResultText.textContent = qrData;
+                qrResultSection.classList.remove('hidden');
+                this.updateScannerStatus('QR Code detected successfully!', 'fa-check-circle', 'text-green-400');
+                this.setupCopyFunctionality(qrData);
+            }
+
+            setupCopyFunctionality(data) {
+                qrResultText.onclick = () => this.copyToClipboard(data, qrResultText);
+                copyAllButton.onclick = () => this.copyToClipboard(data, copyAllButton);
+            }
+
+            async copyToClipboard(text, element) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    this.showCopyFeedback(element, 'Copied!');
+                } catch {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    this.showCopyFeedback(element, 'Copied!');
+                }
+            }
+
+            showCopyFeedback(element, message) {
+                const feedback = document.createElement('div');
+                feedback.className = 'copy-feedback';
+                feedback.textContent = message;
+                const rect = element.getBoundingClientRect();
+                feedback.style.left = rect.left + (rect.width / 2) - 30 + 'px';
+                feedback.style.top = rect.top - 40 + 'px';
+                document.body.appendChild(feedback);
+                setTimeout(() => document.body.removeChild(feedback), 2000);
+            }
+
+            updateScannerStatus(message, icon, iconColor) {
+                scannerStatus.innerHTML = `
+                    <div class="glass-effect rounded-xl p-4">
+                        <i class="fas ${icon} text-2xl ${iconColor} mb-2"></i>
+                        <p class="text-slate-300 font-medium">${message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        const qrScannerManager = new QRScannerManager();
+
+        // Broadcast Management
+        function showBroadcast(message) {
+            if (message === appState.lastBroadcastMessage) return;
+            appState.lastBroadcastMessage = message;
+            broadcastMessage.textContent = message;
+            broadcastToast.classList.remove('hidden');
+        }
+
+        function hideBroadcast() {
+            broadcastToast.classList.add('hidden');
+        }
+
+        // Authentication
+        loginButton.addEventListener('click', async () => {
+            loginButton.disabled = true;
+            loginButton.innerHTML = `<div class="spinner"></div>`;
+            try {
+                await auth.signInWithEmailAndPassword(loginEmailInput.value, loginPasswordInput.value);
+            } catch (error) {
+                loginError.textContent = 'Invalid credentials.';
+                loginButton.disabled = false;
+                loginButton.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Login';
+            }
+        });
+        
+        logoutButton.addEventListener('click', () => {
+            qrScannerManager.stopScanner();
+            auth.signOut();
+        });
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const teamSnapshot = await db.collection('teams').where('authUid', '==', user.uid).get();
+                if (!teamSnapshot.empty) {
+                    const teamDoc = teamSnapshot.docs[0];
+                    const teamData = teamDoc.data();
+                    appState.currentTeam = { id: teamDoc.id, ...teamData };
+                    
+                    teamNameEl.textContent = teamData.teamName;
+                    teamScoreEl.textContent = teamData.score;
+                    
+                    loginScreen.classList.add('hidden');
+                    dashboardScreen.classList.remove('hidden');
+                    
+                    initializeListeners(user.uid);
+                }
+            } else {
+                loginScreen.classList.remove('hidden');
+                dashboardScreen.classList.add('hidden');
+                appState.currentTeam = null;
+                appState.currentTier = null;
+                appState.lastBroadcastMessage = null;
+                clearAllListeners();
+                hideBroadcast();
+                qrScannerManager.stopScanner();
+            }
+        });
+       
+        async function initializeListeners(uid) {
+            clearAllListeners();
+            listenToEventLog();
+            await listenToTeamData(uid);
+            await listenToGameState();
+            await listenToClues();
+        }
+
+        function listenToTeamData(authUid) {
+            return new Promise((resolve) => {
+                const teamQuery = db.collection('teams').where('authUid', '==', authUid);
+                appState.unsubscribe.team = teamQuery.onSnapshot(snapshot => {
+                    if (!snapshot.empty) {
+                        snapshot.forEach(doc => {
+                            appState.currentTeam = { id: doc.id, ...doc.data() };
+                            teamNameEl.textContent = appState.currentTeam.teamName;
+                            teamScoreEl.textContent = appState.currentTeam.score;
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        function listenToGameState() {
+            return new Promise((resolve) => {
+                appState.unsubscribe.gameState = db.collection('game_state').doc('main').onSnapshot(doc => {
+                    const state = doc.data();
+                    if (state) {
+                        if (state.broadcastMessage && state.broadcastMessage.trim()) {
+                            showBroadcast(state.broadcastMessage);
+                        }
+                        
+                        const newTier = state.currentClueTier || 1;
+                        
+                        if (appState.currentTier !== null && appState.currentTier !== newTier) {
+                            console.log(`Tier changed from ${appState.currentTier} to ${newTier}. Refreshing clues.`);
+                            appState.currentTier = newTier;
+                            clueTierEl.textContent = appState.currentTier;
+                            listenToClues(); 
+                        } else {
+                            appState.currentTier = newTier;
+                            clueTierEl.textContent = appState.currentTier;
+                        }
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        function listenToEventLog() {
+            appState.unsubscribe.eventLog = db.collection('event_log').orderBy('timestamp', 'desc').limit(10).onSnapshot(snapshot => {
+                eventFeed.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const event = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'glass-effect p-3 rounded-lg transition-all hover:bg-slate-700/50';
+                    div.innerHTML = `<div class="flex items-start space-x-3"><i class="fas fa-clock text-cyan-400 mt-1 text-sm"></i><p class="text-sm text-slate-300 flex-1">${event.message}</p></div>`;
+                    eventFeed.appendChild(div);
+                });
+            });
+        }
+
+        function listenToClues() {
+            if (appState.unsubscribe.clues) appState.unsubscribe.clues();
+            const cluesQuery = db.collection('clues').where('unlockTier', '==', appState.currentTier);
+            appState.unsubscribe.clues = cluesQuery.onSnapshot(snapshot => {
+                cluesGrid.innerHTML = '';
+                noCluesMessage.style.display = snapshot.empty ? 'block' : 'none';
+                snapshot.forEach(doc => {
+                    const clue = { id: doc.id, ...doc.data() };
+                    const isSolved = appState.currentTeam && (clue.solvers || {})[appState.currentTeam.id];
+                    const card = document.createElement('div');
+                    const solverCount = Object.keys(clue.solvers || {}).length;
+
+                    if (isSolved) {
+                        card.className = 'glass-effect solved-overlay p-6 rounded-xl shadow-lg relative overflow-hidden';
+                        card.innerHTML = `<div class="relative z-10"><h4 class="text-xl font-bold text-white mb-2">${clue.clueTitle}</h4><div class="flex items-center text-green-400"><i class="fas fa-check-circle mr-2"></i><span class="font-semibold">Solved!</span></div></div><div class="absolute top-2 right-2"><i class="fas fa-trophy text-yellow-400 text-2xl opacity-20"></i></div>`;
+                    } else {
+                        card.className = 'glass-effect p-6 rounded-xl shadow-lg cursor-pointer card-hover relative overflow-hidden group';
+                        card.innerHTML = `
+                            <div class="relative z-10">
+                                <h4 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">${clue.clueTitle}</h4>
+                                <div class="flex items-center justify-between text-slate-400 mt-3">
+                                    <div class="flex items-center group-hover:text-cyan-400 transition-colors">
+                                        <i class="fas fa-puzzle-piece mr-2"></i><span class="font-medium">Click to solve</span>
+                                    </div>
+                                    <div class="flex items-center text-xs font-medium bg-slate-700/50 px-2 py-1 rounded-full">
+                                        <i class="fas fa-users mr-1.5"></i>
+                                        <span>${solverCount} Solved</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute top-2 right-2"><i class="fas fa-arrow-right text-cyan-400 text-xl opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0"></i></div>`;
+                        card.addEventListener('click', () => openClueModal(clue));
+                    }
+                    cluesGrid.appendChild(card);
+                });
+            });
+        }
+       
+        function openClueModal(clue) {
+            modalClueTitle.textContent = clue.clueTitle;
+            modalClueText.textContent = clue.clueText;
+            modalFlagInput.value = '';
+            modalFeedback.textContent = '';
+            hintText.classList.add('hidden');
+            hintSection.style.display = clue.hint ? 'block' : 'none';
+            if (clue.hint) {
+                hintButton.disabled = false;
+                hintButton.innerHTML = '<i class="fas fa-lightbulb mr-2"></i>Get Hint (-30 Points)';
+                hintButton.onclick = () => handleHintRequest(clue);
+            }
+            clueModal.classList.remove('hidden');
+            modalSubmitButton.onclick = () => handleFlagSubmission(clue);
+        }
+        
+        closeModalButton.addEventListener('click', () => {
+            clueModal.classList.add('hidden');
+            modalFeedback.textContent = '';
+            modalFlagInput.value = '';
+            hintText.classList.add('hidden');
+        });
+        
+        async function handleHintRequest(clue) {
+            if (appState.currentTeam.score < 30) { return alert("You don't have enough points for a hint!"); }
+            if (!confirm("Are you sure you want to spend 30 points for a hint?")) return;
+            hintButton.disabled = true;
+            hintButton.innerHTML = '<div class="spinner mx-auto"></div>';
+            showLoader(true);
+            try {
+                const teamRef = db.collection('teams').doc(appState.currentTeam.id);
+                await teamRef.update({
+                    score: firebase.firestore.FieldValue.increment(-30),
+                    hintsUsed: firebase.firestore.FieldValue.increment(1)
+                });
+                hintText.innerHTML = `<div class="flex items-start space-x-3"><i class="fas fa-lightbulb text-yellow-400 mt-1"></i><div>${clue.hint}</div></div>`;
+                hintText.classList.remove('hidden');
+            } catch (error) {
+                alert("Could not process hint request. Please try again.");
+                hintButton.disabled = false;
+                hintButton.innerHTML = '<i class="fas fa-lightbulb mr-2"></i>Get Hint (-30 Points)';
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function handleFlagSubmission(clue) {
+            const submittedFlag = modalFlagInput.value.trim();
+            modalSubmitButton.disabled = true;
+            modalSubmitButton.innerHTML = `<div class="spinner mr-2"></div>Submitting...`;
+
+            const teamRef = db.collection('teams').doc(appState.currentTeam.id);
+            const clueRef = db.collection('clues').doc(clue.id);
+            let pointsToAward = 0;
+            let isRabbitHole = false;
+
+            if (submittedFlag === clue.flag) {
+                const solverCount = Object.keys(clue.solvers || {}).length;
+                if (solverCount === 0) pointsToAward = 250;
+                else if (solverCount <= 3) pointsToAward = 200;
+                else pointsToAward = 150;
+            } else if (clue.rabbitHoleFlag && submittedFlag === clue.rabbitHoleFlag) {
+                pointsToAward = -100;
+                isRabbitHole = true;
+            } else {
+                modalFeedback.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Incorrect Flag.';
+                modalFeedback.className = 'text-center mt-4 h-4 font-medium text-red-400 text-sm';
+                modalSubmitButton.disabled = false;
+                modalSubmitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Flag';
+                return;
+            }
+
+            try {
+                await db.runTransaction(async t => {
+                    const clueDoc = await t.get(clueRef);
+                    if (!clueDoc.exists) throw new Error("This clue has disappeared!");
+                    const clueData = clueDoc.data();
+
+                    if (!isRabbitHole && (clueData.solvers || {})[appState.currentTeam.id]) {
+                        throw new Error("You have already solved this clue!");
+                    }
+                    
+                    const teamUpdate = {
+                        score: firebase.firestore.FieldValue.increment(pointsToAward),
+                        lastSubmissionTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+
+                    if (isRabbitHole) {
+                        const rabbitHoleId = `rabbit_${Date.now()}`;
+                        teamUpdate[`rabbitHoles.${rabbitHoleId}`] = {
+                            clueTitle: clue.clueTitle,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                    } else {
+                        teamUpdate.solvedClues = firebase.firestore.FieldValue.arrayUnion(clue.id);
+                    }
+                    
+                    t.update(teamRef, teamUpdate);
+
+                    if (!isRabbitHole) {
+                        const newSolvers = { ...(clueData.solvers || {}) };
+                        newSolvers[appState.currentTeam.id] = { teamName: appState.currentTeam.teamName, solvedAt: new Date() };
+                        t.update(clueRef, { solvers: newSolvers });
+                    }
+                });
+
+                const message = isRabbitHole 
+                    ? `Team "${appState.currentTeam.teamName}" fell into a rabbit hole!` 
+                    : `Team "${appState.currentTeam.teamName}" solved '${clue.clueTitle}' for ${pointsToAward} points!`;
+                await db.collection('event_log').add({ message, timestamp: new Date() });
+
+                modalFeedback.innerHTML = isRabbitHole 
+                    ? `<i class="fas fa-exclamation-triangle mr-2"></i>It's a trap! You lose 100 points.`
+                    : `<i class="fas fa-check-circle mr-2"></i>Success! You earned ${pointsToAward} points!`;
+                modalFeedback.className = `text-center mt-4 h-4 font-medium ${isRabbitHole ? 'text-orange-400' : 'text-green-400'} text-sm`;
+                
+                setTimeout(() => clueModal.classList.add('hidden'), 2000);
+
+            } catch (error) {
+                modalFeedback.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${error.message}`;
+                modalFeedback.className = 'text-center mt-4 h-4 font-medium text-red-400 text-sm';
+            } finally {
+                modalSubmitButton.disabled = false;
+                modalSubmitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Flag';
+            }
+        }
+
+        // QR Scanner Event Listeners
+        qrScannerButton.addEventListener('click', () => {
+            qrScannerModal.classList.remove('hidden');
+        });
+
+        closeQrModalButton.addEventListener('click', () => {
+            qrScannerManager.stopScanner();
+            qrScannerModal.classList.add('hidden');
+        });
+
+        startScannerButton.addEventListener('click', async () => {
+            showLoader(true);
+            const success = await qrScannerManager.startScanner();
+            showLoader(false);
+            if (!success) {
+                alert('Unable to access camera. Please ensure camera permissions are granted and try again.');
+            }
+        });
+
+        stopScannerButton.addEventListener('click', () => {
+            qrScannerManager.stopScanner();
+        });
+
+        qrScannerModal.addEventListener('click', (e) => {
+            if (e.target === qrScannerModal) {
+                qrScannerManager.stopScanner();
+                qrScannerModal.classList.add('hidden');
+            }
+        });
+
+        // Event Listeners
+        closeBroadcast.addEventListener('click', hideBroadcast);
+        loginPasswordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loginButton.click(); });
+        modalFlagInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') modalSubmitButton.click(); });
+
+        clueModal.addEventListener('click', (e) => {
+            if (e.target === clueModal) {
+                clueModal.classList.add('hidden');
+            }
+        });
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                if (qrScannerManager.isActive) {
+                    qrScannerManager.stopScanner();
+                    setTimeout(() => {
+                        if (qrScannerModal && !qrScannerModal.classList.contains('hidden')) {
+                            qrScannerManager.startScanner();
+                        }
+                    }, 1000);
+                }
+            }, 500);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            qrScannerManager.stopScanner();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && qrScannerManager.isActive) {
+                qrScannerManager.stopScanner();
+            }
+        });
+    </script>
+</body>
+</html>
